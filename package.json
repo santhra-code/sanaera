@@ -13,6 +13,7 @@
     "bcryptjs": "^3.0.3",
     "next": "16.3.3",
     "next-auth": "^4.24.15",
+    "prisma": "^7.10.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.4.3"
@@ -23,9 +24,9 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
-    "prisma": "^8.0.0-rc.11",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
