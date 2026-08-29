@@ -8,6 +8,87 @@ export class OrderError extends Error {
   }
 }
 
+const ORDER_STATUS_SEQUENCE = [
+  "PLACED",
+  "CONFIRMED",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+] as const;
+
+type OrderStatus =
+  | "PLACED"
+  | "CONFIRMED"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
+/**
+ * Determines whether moving from `currentStatus` to `newStatus` is a legal
+ * transition. Enforces the order lifecycle defined in the project spec:
+ * PLACED -> CONFIRMED -> PROCESSING -> SHIPPED -> DELIVERED,
+ * with CANCELLED allowed as an early exit (before SHIPPED).
+ */
+export function isValidStatusTransition(
+  currentStatus: OrderStatus,
+  newStatus: OrderStatus
+): boolean {
+  // Terminal states cannot transition to anything else.
+  if (currentStatus === "DELIVERED" || currentStatus === "CANCELLED") {
+    return false;
+  }
+
+  if (newStatus === "CANCELLED") {
+    // Cancellation is only allowed before the order has shipped.
+    return currentStatus === "PLACED" || currentStatus === "CONFIRMED" || currentStatus === "PROCESSING";
+  }
+
+  const currentIndex = ORDER_STATUS_SEQUENCE.indexOf(
+    currentStatus as (typeof ORDER_STATUS_SEQUENCE)[number]
+  );
+  const newIndex = ORDER_STATUS_SEQUENCE.indexOf(
+    newStatus as (typeof ORDER_STATUS_SEQUENCE)[number]
+  );
+
+  // Must move exactly one step forward in the sequence.
+  return newIndex === currentIndex + 1;
+}
+
+/**
+ * Updates an order's status after validating the transition is legal.
+ */
+export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
+  const order = await db.order.findUnique({ where: { id: orderId } });
+
+  if (!order) {
+    throw new OrderError("Order not found.", 404);
+  }
+
+  if (!isValidStatusTransition(order.status, newStatus)) {
+    throw new OrderError(
+      `Cannot change order status from ${order.status} to ${newStatus}.`,
+      400
+    );
+  }
+
+  return db.order.update({
+    where: { id: orderId },
+    data: { status: newStatus },
+  });
+}
+
+/**
+ * Returns all orders, across all customers, most recent first.
+ * Admin-only — callers must enforce authorization before calling this.
+ */
+export async function getAllOrders() {
+  return db.order.findMany({
+    include: { items: true, user: { select: { name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export type ShippingDetails = {
   shippingName: string;
   shippingAddress: string;
