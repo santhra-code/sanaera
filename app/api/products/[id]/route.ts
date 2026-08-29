@@ -25,9 +25,16 @@ export async function GET(
       include: { category: true },
     });
 
-    if (!product || !product.isActive) {
-      return NextResponse.json({ error: "Product not found." }, { status: 404 });
-    }
+    if (!product) {
+  return NextResponse.json({ error: "Product not found." }, { status: 404 });
+}
+
+if (!product.isActive) {
+  const session = await getAuthorizedSession(["ADMIN"]);
+  if (!session) {
+    return NextResponse.json({ error: "Product not found." }, { status: 404 });
+  }
+}
 
     return NextResponse.json(product);
   } catch (error) {
