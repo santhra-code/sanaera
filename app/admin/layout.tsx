@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
-
+export const dynamic = "force-dynamic";
 export default async function AdminLayout({
   children,
 }: {
