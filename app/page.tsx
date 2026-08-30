@@ -26,15 +26,19 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Load categories once, on first render.
   useEffect(() => {
-    fetch("/api/categories")
-      .then((res) => res.json())
-      .then(setCategories)
-      .catch(() => {
-        // Non-critical — the page still works without the filter dropdown.
-      });
-  }, []);
+  fetch("/api/categories")
+    .then(async (res) => {
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setCategories(data);
+      }
+    })
+    .catch(() => {
+      // Non-critical — the page still works without the filter dropdown.
+    });
+}, []);
 
   const loadProducts = useCallback(async () => {
     setIsLoading(true);

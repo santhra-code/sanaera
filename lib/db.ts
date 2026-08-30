@@ -1,6 +1,6 @@
 import "dotenv/config";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@/app/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 
 // Prevent multiple Prisma Client instances during Next.js dev hot-reloading.
 const globalForPrisma = globalThis as unknown as {
@@ -8,7 +8,11 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  // Uses Neon's HTTPS/WebSocket-based serverless driver instead of a raw
+  // TCP connection. This avoids issues where local firewalls, antivirus
+  // software, or restrictive networks interfere with long-lived
+  // PostgreSQL TCP connections on port 5432.
+  const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
   return new PrismaClient({ adapter });
 }
 
