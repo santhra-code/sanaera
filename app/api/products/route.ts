@@ -62,8 +62,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const product = await db.product.create({ data: parsed.data });
-
+    const product = await db.product.create({
+  data: parsed.data,
+  include: { category: true },
+});
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error("Failed to create product:", error);

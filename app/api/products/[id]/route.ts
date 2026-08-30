@@ -73,11 +73,12 @@ export async function PATCH(
     }
 
     const updatedProduct = await db.product.update({
-      where: { id },
-      data: parsed.data,
-    });
+  where: { id },
+  data: parsed.data,
+  include: { category: true },
+});
 
-    return NextResponse.json(updatedProduct);
+return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error("Failed to update product:", error);
     return NextResponse.json(
