@@ -72,9 +72,10 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
     );
   }
 
-  return db.order.update({
+    return db.order.update({
     where: { id: orderId },
     data: { status: newStatus },
+    include: { items: true, user: { select: { name: true, email: true } } },
   });
 }
 
@@ -198,7 +199,7 @@ export async function getOrderById(
 ) {
   const order = await db.order.findUnique({
     where: { id: orderId },
-    include: { items: true },
+    include: { items: true, user: { select: { name: true, email: true } } },
   });
 
   if (!order) {
