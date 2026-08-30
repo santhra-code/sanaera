@@ -13,10 +13,11 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  e.preventDefault();
+  setError("");
+  setIsLoading(true);
 
+  try {
     const response = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -27,7 +28,6 @@ export default function RegisterPage() {
 
     if (!response.ok) {
       setError(data.error ?? "Something went wrong.");
-      setIsLoading(false);
       return;
     }
 
@@ -38,8 +38,6 @@ export default function RegisterPage() {
       redirect: false,
     });
 
-    setIsLoading(false);
-
     if (signInResult?.error) {
       // Registration succeeded but auto-login failed — send them to login manually.
       router.push("/login");
@@ -48,8 +46,12 @@ export default function RegisterPage() {
 
     router.push("/");
     router.refresh();
+  } catch {
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setIsLoading(false);
   }
-
+}
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow">

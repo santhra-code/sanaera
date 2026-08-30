@@ -47,14 +47,21 @@ export default function AdminOrderDetailPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch(`/api/orders/${orderId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setOrder(data);
-        setSelectedStatus(data.status);
-      })
-      .finally(() => setIsLoading(false));
-  }, [orderId]);
+  fetch(`/api/orders/${orderId}`)
+    .then(async (r) => {
+      if (!r.ok) {
+        const data = await r.json();
+        throw new Error(data.error ?? "Order not found.");
+      }
+      const data = await r.json();
+      setOrder(data);
+      setSelectedStatus(data.status);
+    })
+    .catch((err) => {
+      setError(err instanceof Error ? err.message : "Could not load order.");
+    })
+    .finally(() => setIsLoading(false));
+}, [orderId]);
 
   async function handleUpdateStatus() {
     setError("");
@@ -91,8 +98,17 @@ export default function AdminOrderDetailPage() {
   }
 
   if (!order) {
-    return <p className="text-sm text-red-600">Order not found.</p>;
-  }
+  return (
+    <div>
+      <p className="text-sm text-red-600" role="alert">
+        {error || "Order not found."}
+      </p>
+      <Link href="/admin/orders" className="mt-2 inline-block text-sm underline">
+        Back to Orders
+      </Link>
+    </div>
+  );
+}
 
   return (
     <div className="mx-auto max-w-2xl">

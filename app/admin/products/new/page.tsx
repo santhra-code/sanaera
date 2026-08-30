@@ -19,10 +19,18 @@ export default function NewProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then(setCategories);
-  }, []);
+  fetch("/api/categories")
+    .then(async (r) => {
+      if (!r.ok) return;
+      const data = await r.json();
+      if (Array.isArray(data)) {
+        setCategories(data);
+      }
+    })
+    .catch(() => {
+      // Non-critical failure — form still works, just without category options.
+    });
+}, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

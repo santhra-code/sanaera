@@ -31,11 +31,17 @@ export default function CheckoutPage() {
   const [shippingPincode, setShippingPincode] = useState("");
 
   useEffect(() => {
-    fetch("/api/cart")
-      .then((r) => r.json())
-      .then(setCart)
-      .finally(() => setIsLoading(false));
-  }, []);
+  fetch("/api/cart")
+    .then(async (r) => {
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      setCart(data);
+    })
+    .catch(() => {
+      setError("Could not load your cart. Please refresh and try again.");
+    })
+    .finally(() => setIsLoading(false));
+}, []);
 
   const subtotal =
     cart?.items.reduce(

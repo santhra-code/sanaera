@@ -25,10 +25,27 @@ export default function EditProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/products/${productId}`).then((r) => r.json()),
-      fetch("/api/categories").then((r) => r.json()),
-    ]).then(([product, categoryList]) => {
+  async function loadData() {
+    try {
+      const [productRes, categoriesRes] = await Promise.all([
+        fetch(`/api/products/${productId}`),
+        fetch("/api/categories"),
+      ]);
+
+      if (!productRes.ok) {
+        const data = await productRes.json();
+        throw new Error(data.error ?? "Could not load product.");
+      }
+
+      const product = await productRes.json();
+
+      if (categoriesRes.ok) {
+        const categoryList = await categoriesRes.json();
+        if (Array.isArray(categoryList)) {
+          setCategories(categoryList);
+        }
+      }
+
       setName(product.name);
       setDescription(product.description);
       setPrice(String(product.price));
@@ -36,10 +53,15 @@ export default function EditProductPage() {
       setStock(String(product.stock));
       setCategoryId(product.categoryId);
       setIsActive(product.isActive);
-      setCategories(categoryList);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load product.");
+    } finally {
       setIsLoading(false);
-    });
-  }, [productId]);
+    }
+  }
+
+  loadData();
+}, [productId]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -77,8 +99,21 @@ export default function EditProductPage() {
     }
   }
 
-  if (isLoading) {
+    if (isLoading) {
     return <p className="text-sm text-gray-500">Loading product...</p>;
+  }
+
+  if (error && !name) {
+    return (
+      <div>
+        <p className="text-sm text-red-600" role="alert">
+          {error}
+        </p>
+        <Link href="/admin/products" className="mt-2 inline-block text-sm underline">
+          Back to Products
+        </Link>
+      </div>
+    );
   }
 
   return (
