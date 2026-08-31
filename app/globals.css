@@ -2,11 +2,14 @@
 
 :root {
   color-scheme: light;
-}
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-espresso: #1a0905;
+  --color-wine: #4c050c;
+  --color-cream: #e3dfce;
+  --color-powder: #94b1c8;
+
+  --background: #e3dfce;
+  --foreground: #1a0905;
 }
 
 @theme inline {
@@ -14,13 +17,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
