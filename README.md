@@ -168,9 +168,10 @@ erDiagram
 
 ### Categories
 
-| Method | Path | Auth | Role | Success |
-|---|---|---|---|---|
-| GET | `/api/categories` | None | — | 200, category array |
+| Method | Path | Auth | Role | Body | Success | Errors |
+|---|---|---|---|---|---|---|
+| GET | `/api/categories` | None | — | — | 200, category array | — |
+| POST | `/api/categories` | Required | ADMIN | `{ name }` | 201, category | 400, 403, 409 |
 
 ### Cart
 
