@@ -1,16 +1,35 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import AddCategoryForm from "./AddCategoryForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
-  const products = await db.product.findMany({
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const [products, categories] = await Promise.all([
+    db.product.findMany({
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.category.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   return (
     <div>
+      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-medium text-gray-900">Categories</h2>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <span
+              key={category.id}
+              className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+            >
+              {category.name}
+            </span>
+          ))}
+        </div>
+        <AddCategoryForm />
+      </div>
+
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Products</h1>
         <Link
