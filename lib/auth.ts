@@ -3,6 +3,37 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 
+/**
+ * Verifies an email/password combination against the database.
+ * Returns the safe user fields on success, or null on any failure
+ * (wrong email, wrong password) — deliberately generic so the caller
+ * can't distinguish "email doesn't exist" from "password is wrong".
+ *
+ * Extracted from the NextAuth config so it can be tested directly,
+ * independent of NextAuth's request/session machinery.
+ */
+export async function verifyCredentials(email: string, password: string) {
+  const user = await db.user.findUnique({ where: { email } });
+
+  if (!user) {
+    return null;
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!isPasswordValid) {
+    return null;
+  }
+
+  // Only return safe fields — never the password hash.
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  };
+}
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -21,38 +52,12 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
-
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        // Deliberately generic — never reveal whether the email exists.
-        if (!user) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.passwordHash
-        );
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        // Only return safe fields — never the password hash.
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
+        return verifyCredentials(credentials.email, credentials.password);
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // On initial sign-in, `user` is defined — copy id/role into the token.
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -60,7 +65,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // Expose id/role on the session object so API routes can read them.
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as "CUSTOMER" | "ADMIN";
