@@ -27,30 +27,43 @@ export default function HomePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-  fetch("/api/categories")
-    .then(async (res) => {
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setCategories(data);
-      }
-    })
-    .catch(() => {
-      // Non-critical — the page still works without the filter dropdown.
-    });
-}, []);
+    fetch("/api/categories")
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setCategories(data);
+        }
+      })
+      .catch(() => {
+        // Non-critical — the page still works without the filter dropdown.
+      });
+  }, []);
 
   const loadProducts = useCallback(async () => {
     setIsLoading(true);
     setError("");
 
     const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (selectedCategory) params.set("category", selectedCategory);
+
+    if (search) {
+      params.set("search", search);
+    }
+
+    if (selectedCategory) {
+      params.set("category", selectedCategory);
+    }
 
     try {
-      const response = await fetch(`/api/products?${params.toString()}`);
-      if (!response.ok) throw new Error();
+      const response = await fetch(
+        `/api/products?${params.toString()}`
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
       const data = await response.json();
       setProducts(data);
     } catch {
@@ -71,25 +84,32 @@ export default function HomePage() {
         <h1 className="text-2xl font-semibold tracking-wide text-gray-900">
           SANAÉRA
         </h1>
-        <p className="text-sm text-gray-500">Fashion, rooted in tradition.</p>
+
+        <p className="text-sm text-gray-500">
+          Fashion, rooted in tradition.
+        </p>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          
+          {/* Search */}
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm sm:max-w-xs"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 sm:max-w-xs"
           />
 
+          {/* Category Filter */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm sm:max-w-xs"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 sm:max-w-xs"
           >
             <option value="">All categories</option>
+
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -99,7 +119,9 @@ export default function HomePage() {
         </div>
 
         {isLoading && (
-          <p className="text-sm text-gray-500">Loading products...</p>
+          <p className="text-sm text-gray-500">
+            Loading products...
+          </p>
         )}
 
         {error && (
@@ -128,10 +150,15 @@ export default function HomePage() {
                   className="h-full w-full object-cover transition group-hover:scale-105"
                 />
               </div>
+
               <h2 className="mt-3 text-sm font-medium text-gray-900">
                 {product.name}
               </h2>
-              <p className="text-xs text-gray-500">{product.category.name}</p>
+
+              <p className="text-xs text-gray-500">
+                {product.category.name}
+              </p>
+
               <p className="mt-1 text-sm font-semibold text-gray-900">
                 ₹{product.price}
               </p>
